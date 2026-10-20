@@ -81,3 +81,80 @@ oauth 2.0
 
 variables in postman api
 variable,collection,global
+
+dev--(component testing by dev,highly unstable)-qa-stage env
+# Playwright API Automation Framework
+
+This project tests the Restful Booker API documented at
+<https://restful-booker.herokuapp.com/apidoc/index.html> with JavaScript and
+Playwright's API request fixture. It is API-only; browser binaries are not
+required.
+
+## Requirements
+
+- Node.js 20 or newer
+- npm
+- Network access to the configured API
+
+## Setup and run
+
+```powershell
+npm ci
+npm run test:api
+```
+
+The suite runs sequentially against the shared public demo API. Booking tests
+create uniquely named records and delete the records they create. To target a
+different compatible environment, set `API_BASE_URL` before running:
+
+```powershell
+$env:API_BASE_URL = 'https://restful-booker.herokuapp.com'
+npm run test:api
+```
+
+## Reports
+
+Each test run writes:
+
+- Playwright HTML report: `playwright-report/` (`npm run report:html`)
+- Allure raw results: `allure-results/`
+
+Generate and open the Allure report:
+
+```powershell
+npm run report:allure
+npm run report:allure:open
+```
+
+## Project structure
+
+```text
+fixtures/       Shared Playwright API fixture
+src/api/        Booking API client
+test-data/      Reusable credentials and booking data factory
+tests/          Separate API operation and behavior test cases
+playwright.config.js
+```
+
+## API coverage
+
+Coverage here means documented API behavior exercised by this suite, not source
+line coverage of the remotely hosted service. `tests/booking-lifecycle.spec.js`
+contains separate create, read, list/filter, PUT update, PATCH update, and delete
+test cases. Separate tests also exercise successful and unsuccessful `POST
+/auth`, `GET /ping`, and the not-found behavior for an unknown booking. Every
+documented endpoint and documented list filter is represented: 100%
+operation/filter coverage.
+
+The API is a public demo service, so availability and external data changes can
+affect test results. This project does not claim coverage of undocumented
+validation behavior or server implementation code.
+
+## Design notes
+
+- API calls are centralized in `src/api/booking-api.js`; tests focus on behavior
+  and response contracts.
+- Request fixtures are isolated per test, and one worker avoids competing
+  writes against the shared demo service.
+- Credentials and payload builders live in `test-data/booking-data.js`.
+- `API_BASE_URL` supports local or staging environments without changing code.
